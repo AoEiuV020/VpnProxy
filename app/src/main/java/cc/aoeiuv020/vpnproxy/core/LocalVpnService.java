@@ -75,7 +75,7 @@ public class LocalVpnService extends VpnService implements Runnable {
         m_DNSBuffer = ((ByteBuffer) ByteBuffer.wrap(m_Packet).position(28)).slice();
         Instance = this;
 
-        Log.d("BaoLianDeng", "New VPNService" + ID);
+        Log.d("VpnProxy", "New VPNService" + ID);
     }
 
     public static void addOnStatusChangedListener(onStatusChangedListener listener) {
@@ -92,12 +92,14 @@ public class LocalVpnService extends VpnService implements Runnable {
 
     @Override
     public void onCreate() {
+/*
         writeLog("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.");
         writeLog("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.");
 
         writeLog("This program includes two other open source programs:");
         writeLog("SmartProxy Copyright (C) 2014 hedaode. GPLv3");
         writeLog("Lantern Copyright 2010 Brave New Software Project, Inc. Apache 2.0");
+*/
 
         try {
             m_TcpProxyServer = new TcpProxyServer(0);
@@ -204,38 +206,10 @@ public class LocalVpnService extends VpnService implements Runnable {
 
             waitUntilPreapred();
 
-//            Lantern.ProtectConnections("119.29.29.29", new Lantern.SocketProtector() {
-//                // Protect is used to exclude a socket specified by fileDescriptor
-//                // from the VPN connection. Once protected, the underlying connection
-//                // is bound to the VPN device and won't be forwarded
-//                @Override
-//                public void Protect(long fileDescriptor) throws Exception {
-//                    if (!protect((int) fileDescriptor)) {
-//                        throw new Exception("protect socket failed");
-//                    }
-//                }
-//            });
-
-//            go.lantern.Lantern.StartResult result =
-//                go.lantern.Lantern.Start(configDirFor(this, ""), 10000, ProxyConfig.IS_DEBUG);
-
-//            ProxyConfig.Instance.addProxy("http://" + result.getHTTPAddr());
-            ProxyConfig.Instance.addProxy("http://" + "localhost:8787");
+            ProxyConfig.Instance.addProxy("http://" + "192.168.1.10:8123");
 
             ChinaIpMaskManager.loadFromFile(getResources().openRawResource(R.raw.ipmask));
 
-//            OkHttpClient client = new OkHttpClient();
-//            Request request = new Request.Builder()
-//                    .url("https://myhosts.sinaapp.com/blacklist.txt")
-//                    .build();
-//
-//            try {
-//                Response response = client.newCall(request).execute();
-//                String body = response.body().string();
-//                m_Blacklist = body.split("\\r?\\n");
-//            } catch (IOException e) {
-//                Log.e(Constant.TAG, "Unable to fetch blacklist");
-//            }
 
             runVPN();
 
@@ -246,7 +220,7 @@ public class LocalVpnService extends VpnService implements Runnable {
             writeLog("Fatal error: %s", e.toString());
         }
 
-        writeLog("BaoLianDeng terminated.");
+        writeLog("VpnProxy terminated.");
         dispose();
     }
 
