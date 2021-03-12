@@ -1,0 +1,95 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build_env:
+    name: build env
+    runs-on: ubuntu-latest
+    steps:
+      - name: make nameWithVersion
+        id: nameWithVersion
+        run: echo "${GITHUB_REPOSITORY#*/}-$(date +'%Y%m%d%H%m%S')" > nameWithVersion
+      - name: upload nameWithVersion
+        uses: actions/upload-artifact@master
+        with:
+          name: nameWithVersion
+          path: nameWithVersion
+  build_android:
+    needs: [build_env]
+    name: Build Flutter (Android)
+    runs-on: ubuntu-latest
+    steps:
+      - name: make nameWithVersion
+        uses: actions/download-artifact@v2
+        with:
+          name: nameWithVersion
+      - id: nameWithVersion
+        run: |
+          echo "::set-output name=nameWithVersion::$(cat nameWithVersion)"
+          rm nameWithVersion
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'beta'
+      - run: flutter pub get
+      - run: |
+          mkdir -p build
+          chmod +x gradlew
+          ./gradlew assembleRelease
+          mv app/build/outputs/apk/release/*.apk build/${{ steps.nameWithVersion.outputs.nameWithVersion }}-android.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@master
+        with:
+          name: android-build
+          path: build/${{ steps.nameWithVersion.outputs.nameWithVersion }}-android.apk
+  release:
+    needs: [build_env, build_android]
+    name: make release
+    runs-on: ubuntu-latest
+    steps:
+      - name: make nameWithVersion
+        uses: actions/download-artifact@v2
+        with:
+          name: nameWithVersion
+      - id: nameWithVersion
+        run: |
+          echo "::set-output name=nameWithVersion::$(cat nameWithVersion)"
+          rm nameWithVersion
+      - name: download android
+        uses: actions/download-artifact@v2
+        with:
+          name: android-build
+      - name: create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ steps.nameWithVersion.outputs.nameWithVersion }}
+          release_name: ${{ steps.nameWithVersion.outputs.nameWithVersion }}
+          body: auto release
+          draft: true
+          prerelease: false
+      - name: Upload Release Asset android
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.nameWithVersion.outputs.nameWithVersion }}-android.apk
+          asset_name: ${{ steps.nameWithVersion.outputs.nameWithVersion }}-android.apk
+          asset_content_type: application/zip
+      - name: public release
+        uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.create_release.outputs.id }}
