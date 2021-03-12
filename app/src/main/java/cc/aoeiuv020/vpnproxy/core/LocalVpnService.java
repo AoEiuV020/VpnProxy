@@ -40,7 +40,7 @@ import cc.aoeiuv020.vpnproxy.ui.MainActivity;
 public class LocalVpnService extends VpnService implements Runnable {
 
     @SuppressLint("AuthLeak")
-    private static final String DEFAULT_HTTP_PROXY_SERVER = "http://user1:pass1@192.168.2.10:1082";
+    private static final String DEFAULT_HTTP_PROXY_SERVER = "http://user1:pass1@192.168.2.10:2082";
     public static LocalVpnService Instance;
     public static boolean IsRunning = false;
 

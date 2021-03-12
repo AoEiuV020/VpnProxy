@@ -1,5 +1,8 @@
 package cc.aoeiuv020.vpnproxy.tunnel.httpconnect;
 
+import android.util.Base64;
+import android.util.Log;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
@@ -9,7 +12,7 @@ import cc.aoeiuv020.vpnproxy.core.ProxyConfig;
 import cc.aoeiuv020.vpnproxy.tunnel.Tunnel;
 
 public class HttpConnectTunnel extends Tunnel {
-
+    private static final String TAG = "HttpConnectTunnel";
     private boolean m_TunnelEstablished;
     private boolean m_FirstPacket;
     private HttpConnectConfig m_Config;
@@ -21,18 +24,28 @@ public class HttpConnectTunnel extends Tunnel {
 
     @Override
     protected void onConnected(ByteBuffer buffer) throws Exception {
-        String request = String.format(Locale.ENGLISH, "CONNECT %s:%d HTTP/1.0\r\nProxy-Connection: keep-alive\r\nUser-Agent: %s\r\nX-App-Install-ID: %s\r\n\r\n",
+        String request = String.format(Locale.ENGLISH, "CONNECT %s:%d HTTP/1.0\r\n" +
+                        "Proxy-Authorization: Basic %s\r\n" +
+                        "Proxy-Connection: keep-alive\r\n" +
+                        "User-Agent: %s\r\n" +
+                        "X-App-Install-ID: %s" +
+                        "\r\n\r\n",
                 m_DestAddress.getHostName(),
                 m_DestAddress.getPort(),
+                makeAuthorization(),
                 ProxyConfig.Instance.getUserAgent(),
                 ProxyConfig.AppInstallID);
-
+        Log.i(TAG, "onConnected: " + request);
         buffer.clear();
         buffer.put(request.getBytes());
         buffer.flip();
         if (this.write(buffer, true)) {
             this.beginReceive();
         }
+    }
+
+    private String makeAuthorization() {
+        return Base64.encodeToString((m_Config.UserName + ":" + m_Config.Password).getBytes(), Base64.DEFAULT).trim();
     }
 
     @Override
@@ -76,6 +89,7 @@ public class HttpConnectTunnel extends Tunnel {
     @Override
     protected void beforeSend(ByteBuffer buffer) throws Exception {
         // Nothing
+        Log.d("HttpConnectTunnel", "beforeSend() called with: buffer = [" + buffer + "]");
     }
 
     @Override
