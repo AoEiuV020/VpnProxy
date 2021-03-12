@@ -1,5 +1,8 @@
 package cc.aoeiuv020.vpnproxy.core;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,20 +45,31 @@ public class ProxyConfig {
         m_DnsList.add(new IPAddress("8.8.8.8"));
     }
 
-    public void addProxy(String proxy) {
-        Config config = HttpConnectConfig.parse(proxy);
-        if (!m_ProxyList.contains(config)) {
-            m_ProxyList.add(config);
-        }
+    @SuppressLint("AuthLeak")
+    public static String getHttpProxyServer(Context ctx) {
+        return ctx.getSharedPreferences("proxyConfig", Context.MODE_PRIVATE)
+                .getString("serverAddress", "http://user1:pass1@192.168.2.10:1082");
     }
 
     public static boolean isFakeIP(int ip) {
         return (ip & ProxyConfig.FAKE_NETWORK_MASK) == ProxyConfig.FAKE_NETWORK_IP;
     }
 
+    public static void setHttpProxyServer(Context ctx, String address) {
+        ctx.getSharedPreferences("proxyConfig", Context.MODE_PRIVATE).edit()
+                .putString("serverAddress", address)
+                .apply();
+    }
+
+    public void setProxy(String proxy) {
+        Config config = HttpConnectConfig.parse(proxy);
+        m_ProxyList.clear();
+        m_ProxyList.add(config);
+    }
+
     public Config getDefaultProxy() {
         if (m_ProxyList.isEmpty()) {
-            return HttpConnectConfig.parse("http://127.0.0.1:8787");
+            return HttpConnectConfig.parse("http://user1:pass1@192.168.2.10:1082");
         } else {
             return m_ProxyList.get(0);
         }

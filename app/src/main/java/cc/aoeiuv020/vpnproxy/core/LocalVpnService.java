@@ -1,6 +1,5 @@
 package cc.aoeiuv020.vpnproxy.core;
 
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -39,8 +38,6 @@ import cc.aoeiuv020.vpnproxy.ui.MainActivity;
 
 public class LocalVpnService extends VpnService implements Runnable {
 
-    @SuppressLint("AuthLeak")
-    private static final String DEFAULT_HTTP_PROXY_SERVER = "http://user1:pass1@192.168.2.10:2082";
     public static LocalVpnService Instance;
     public static boolean IsRunning = false;
 
@@ -208,8 +205,6 @@ public class LocalVpnService extends VpnService implements Runnable {
             writeLog("App version: %s", ProxyConfig.AppVersion);
 
             waitUntilPreapred();
-
-            ProxyConfig.Instance.addProxy(DEFAULT_HTTP_PROXY_SERVER);
 
             ChinaIpMaskManager.loadFromFile(getResources().openRawResource(R.raw.ipmask));
 
@@ -434,7 +429,7 @@ public class LocalVpnService extends VpnService implements Runnable {
     @Override
     public void onDestroy() {
         Log.d(Constant.TAG, "VPNService(%s) destroyed: " + ID);
-        if(IsRunning) dispose();
+        if (IsRunning) dispose();
         try {
             // ֹͣTcpServer
             if (m_TcpProxyServer != null) {
@@ -460,6 +455,7 @@ public class LocalVpnService extends VpnService implements Runnable {
 
     public interface onStatusChangedListener {
         void onStatusChanged(String status, Boolean isRunning);
+
         void onLogReceived(String logString);
     }
 

@@ -2,6 +2,7 @@ package cc.aoeiuv020.vpnproxy.ui;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -15,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +27,7 @@ import java.util.Calendar;
 import cc.aoeiuv020.vpnproxy.R;
 import cc.aoeiuv020.vpnproxy.core.Constant;
 import cc.aoeiuv020.vpnproxy.core.LocalVpnService;
+import cc.aoeiuv020.vpnproxy.core.ProxyConfig;
 
 public class MainActivity extends AppCompatActivity implements
         OnCheckedChangeListener,
@@ -66,6 +69,24 @@ public class MainActivity extends AppCompatActivity implements
 
         mCalendar = Calendar.getInstance();
         LocalVpnService.addOnStatusChangedListener(this);
+    }
+
+    private void inputAddress() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Http proxy server");
+        final EditText input = new EditText(this);
+        input.setText(ProxyConfig.getHttpProxyServer(this));
+        builder.setView(input);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String text = input.getText().toString();
+                ProxyConfig.Instance.setProxy(text);
+                ProxyConfig.setHttpProxyServer(MainActivity.this, text);
+            }
+        });
+        builder.setCancelable(false);
+        builder.show();
     }
 
     @Override
@@ -202,6 +223,10 @@ public class MainActivity extends AppCompatActivity implements
 
         switchProxy.setChecked(LocalVpnService.IsRunning);
         switchProxy.setOnCheckedChangeListener(this);
+
+        if (!switchProxy.isChecked()) {
+            inputAddress();
+        }
 
         return true;
     }
