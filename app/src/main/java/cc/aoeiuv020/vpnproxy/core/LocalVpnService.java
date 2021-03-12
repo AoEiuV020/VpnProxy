@@ -1,5 +1,6 @@
 package cc.aoeiuv020.vpnproxy.core;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -38,12 +39,14 @@ import cc.aoeiuv020.vpnproxy.ui.MainActivity;
 
 public class LocalVpnService extends VpnService implements Runnable {
 
+    @SuppressLint("AuthLeak")
+    private static final String DEFAULT_HTTP_PROXY_SERVER = "http://user1:pass1@192.168.2.10:1082";
     public static LocalVpnService Instance;
     public static boolean IsRunning = false;
 
     private final String device = android.os.Build.DEVICE;
     private final String model = android.os.Build.MODEL;
-    private final String version = "" + android.os.Build.VERSION.SDK_INT + " ("  + android.os.Build.VERSION.RELEASE + ")";
+    private final String version = "" + android.os.Build.VERSION.SDK_INT + " (" + android.os.Build.VERSION.RELEASE + ")";
 
     private static int ID;
     private static int LOCAL_IP;
@@ -206,7 +209,7 @@ public class LocalVpnService extends VpnService implements Runnable {
 
             waitUntilPreapred();
 
-            ProxyConfig.Instance.addProxy("http://" + "192.168.1.10:8123");
+            ProxyConfig.Instance.addProxy(DEFAULT_HTTP_PROXY_SERVER);
 
             ChinaIpMaskManager.loadFromFile(getResources().openRawResource(R.raw.ipmask));
 
