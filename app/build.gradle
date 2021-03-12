@@ -5,8 +5,8 @@ android {
 
     defaultConfig {
         applicationId "cc.aoeiuv020.vpnproxy"
-        minSdkVersion 15
-        targetSdkVersion 27
+        minSdkVersion min_version
+        targetSdkVersion target_version
         versionCode 1
         versionName "1.0"
     }
