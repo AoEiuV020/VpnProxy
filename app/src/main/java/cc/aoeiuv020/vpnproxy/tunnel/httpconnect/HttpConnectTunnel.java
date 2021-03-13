@@ -1,5 +1,6 @@
 package cc.aoeiuv020.vpnproxy.tunnel.httpconnect;
 
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
@@ -24,17 +25,30 @@ public class HttpConnectTunnel extends Tunnel {
 
     @Override
     protected void onConnected(ByteBuffer buffer) throws Exception {
-        String request = String.format(Locale.ENGLISH, "CONNECT %s:%d HTTP/1.0\r\n" +
-                        "Proxy-Authorization: Basic %s\r\n" +
-                        "Proxy-Connection: keep-alive\r\n" +
-                        "User-Agent: %s\r\n" +
-                        "X-App-Install-ID: %s" +
-                        "\r\n\r\n",
-                m_DestAddress.getHostName(),
-                m_DestAddress.getPort(),
-                makeAuthorization(),
-                ProxyConfig.Instance.getUserAgent(),
-                ProxyConfig.AppInstallID);
+        String request;
+        if (TextUtils.isEmpty(m_Config.UserName) || TextUtils.isEmpty(m_Config.Password)) {
+            request = String.format(Locale.ENGLISH, "CONNECT %s:%d HTTP/1.0\r\n" +
+                            "Proxy-Connection: keep-alive\r\n" +
+                            "User-Agent: %s\r\n" +
+                            "X-App-Install-ID: %s" +
+                            "\r\n\r\n",
+                    m_DestAddress.getHostName(),
+                    m_DestAddress.getPort(),
+                    ProxyConfig.Instance.getUserAgent(),
+                    ProxyConfig.AppInstallID);
+        } else {
+            request = String.format(Locale.ENGLISH, "CONNECT %s:%d HTTP/1.0\r\n" +
+                            "Proxy-Authorization: Basic %s\r\n" +
+                            "Proxy-Connection: keep-alive\r\n" +
+                            "User-Agent: %s\r\n" +
+                            "X-App-Install-ID: %s" +
+                            "\r\n\r\n",
+                    m_DestAddress.getHostName(),
+                    m_DestAddress.getPort(),
+                    makeAuthorization(),
+                    ProxyConfig.Instance.getUserAgent(),
+                    ProxyConfig.AppInstallID);
+        }
         Log.i(TAG, "onConnected: " + request);
         buffer.clear();
         buffer.put(request.getBytes());
@@ -52,6 +66,7 @@ public class HttpConnectTunnel extends Tunnel {
     protected void afterReceived(ByteBuffer buffer) throws Exception {
         if (!m_TunnelEstablished) {
             String response = new String(buffer.array(), buffer.position(), 12);
+            Log.i(TAG, "afterReceived: " + response);
             if (response.matches("^HTTP/1.[01] 200$")) {
                 buffer.limit(buffer.position());
             } else {
@@ -89,7 +104,6 @@ public class HttpConnectTunnel extends Tunnel {
     @Override
     protected void beforeSend(ByteBuffer buffer) throws Exception {
         // Nothing
-        Log.d("HttpConnectTunnel", "beforeSend() called with: buffer = [" + buffer + "]");
     }
 
     @Override
